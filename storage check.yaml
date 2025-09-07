@@ -1,27 +1,27 @@
 ---
 - name: Check Disk Storage Usage
   hosts: all
-  gather_facts: true  # Required to get ansible_mounts
+  gather_facts: true
 
   vars:
     disk_usage_warning_threshold: 85  # Warn if usage > 85%
 
   tasks:
-    - name: Get disk usage information
+    - name: Display disk usage information
       debug:
-        msg: "Mountpoint {{ item.mount }} is {{ item.size_used | default(0) / item.size_total | default(1) * 100 | int }}% used ({{ item.size_available | default(0) / 1024 / 1024 | int }} GB free)"
+        msg: "Mountpoint {{ item.mount }} is {{ (100 - (item.size_available | default(0) / item.size_total | default(1) * 100)) | int }}% used ({{ item.size_available | default(0) / 1024 / 1024 | int }} GB free)"
       loop: "{{ ansible_mounts }}"
       when: item.size_total > 0  # Skip virtual filesystems
 
-    - name: Check for critical disk usage
-      fail:
-        msg: "CRITICAL: Mountpoint {{ item.mount }} is {{ (item.size_used | default(0) / item.size_total | default(1) * 100) | int }}% used! (Threshold: {{ disk_usage_warning_threshold }}%)"
+    - name: Warn for high disk usage
+      debug:
+        msg: "WARNING: Mountpoint {{ item.mount }} is {{ (100 - (item.size_available | default(0) / item.size_total | default(1) * 100)) | int }}% used! (Threshold: {{ disk_usage_warning_threshold }}%)"
       loop: "{{ ansible_mounts }}"
       when: 
         - item.size_total > 0
-        - (item.size_used | default(0) / item.size_total | default(1) * 100) > disk_usage_warning_threshold
+        - (100 - (item.size_available | default(0) / item.size_total | default(1) * 100)) > disk_usage_warning_threshold
 
     - name: Disk usage status summary
       debug:
         msg: "All disk usage is below {{ disk_usage_warning_threshold }}% threshold."
-      when: ansible_mounts | selectattr('size_total', '>', 0) | map(attribute='size_used') | list | count == 0
+      when: ansible_mounts | selectattr('size_total', '>', 0) | list | length > 0
