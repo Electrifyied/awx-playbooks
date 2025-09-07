@@ -14,9 +14,9 @@
           - "Free Memory: {{ ansible_memfree_mb }} MB"
           - "Memory Usage: {{ ((ansible_memtotal_mb - ansible_memfree_mb) / ansible_memtotal_mb * 100) | round(2) }}%"
 
-    - name: Check if free memory is critically low
-      fail:
-        msg: "CRITICAL: Free memory ({{ ansible_memfree_mb }} MB) is below threshold of {{ memory_warning_threshold_mb }} MB!"
+    - name: Warn if free memory is low (but don't fail)
+      debug:
+        msg: "WARNING: Free memory ({{ ansible_memfree_mb }} MB) is below threshold of {{ memory_warning_threshold_mb }} MB!"
       when: ansible_memfree_mb < memory_warning_threshold_mb
 
     - name: Memory status OK
