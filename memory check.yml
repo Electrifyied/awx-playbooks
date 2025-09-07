@@ -12,7 +12,7 @@
         msg:
           - "Total Memory: {{ ansible_memtotal_mb }} MB"
           - "Free Memory: {{ ansible_memfree_mb }} MB"
-          - "Memory Usage: {{ (100 - (ansible_memfree_mb / ansible_memtotal_mb * 100)) | round(2) }}%"
+          - "Memory Usage: {{ ((ansible_memtotal_mb - ansible_memfree_mb) / ansible_memtotal_mb * 100) | round(2) }}%"
 
     - name: Check if free memory is critically low
       fail:
