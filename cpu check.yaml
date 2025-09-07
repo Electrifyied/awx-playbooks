@@ -1,7 +1,7 @@
 ---
 - name: Check CPU Load Average
   hosts: all
-  gather_facts: true  # Required to get ansible_processor_cores and load average
+  gather_facts: true
 
   vars:
     load_warning_threshold: 0.8  # Warn if load average per core > 0.8
@@ -23,9 +23,9 @@
           - "1-minute Load Average: {{ one_min_load }}"
           - "Load per Core: {{ (one_min_load / ansible_processor_cores) | float | round(2) }}"
 
-    - name: Check if CPU load is too high
-      fail:
-        msg: "CRITICAL: CPU load per core ({{ (one_min_load / ansible_processor_cores) | float | round(2) }}) is above threshold of {{ load_warning_threshold }}!"
+    - name: Warn if CPU load is high
+      debug:
+        msg: "WARNING: CPU load per core ({{ (one_min_load / ansible_processor_cores) | float | round(2) }}) is above threshold of {{ load_warning_threshold }}!"
       when: (one_min_load / ansible_processor_cores) > load_warning_threshold
 
     - name: CPU load status OK
