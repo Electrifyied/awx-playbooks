@@ -7,13 +7,17 @@
     load_warning_threshold: 0.8
 
   tasks:
+    - name: Get 1-minute load average
+      set_fact:
+        one_min_load: "{{ ansible_loadavg['1'] | default(ansible_loadavg['1m']) | default(0) | float }}"
+
     - name: Display CPU information
       debug:
         msg:
           - "CPU Cores: {{ ansible_processor_cores }}"
-          - "1-minute Load Average: {{ ansible_loadavg.0 }}"
-          - "Load per Core: {{ (ansible_loadavg.0 / ansible_processor_cores) | float | round(2) }}"
+          - "1-minute Load Average: {{ one_min_load }}"
+          - "Load per Core: {{ (one_min_load / ansible_processor_cores) | round(2) }}"
 
     - name: Check CPU load status
       debug:
-        msg: "{{ (ansible_loadavg.0 / ansible_processor_cores) > load_warning_threshold | ternary('WARNING: Load is high!', 'OK: Load is normal') }}"
+        msg: "{{ ((one_min_load / ansible_processor_cores) > load_warning_threshold) | ternary('WARNING: Load is high!', 'OK: Load is normal') }}"
