@@ -7,17 +7,19 @@
     load_warning_threshold: 0.8
 
   tasks:
-    - name: Get load average with timeout
-      shell: |
-        cat /proc/loadavg 2>/dev/null | awk '{print $1}' || echo "0"
-      register: load_result
-      changed_when: false
-      args:
-        timeout: 10  # 10 second timeout to prevent hanging
+    - name: Display all loadavg facts for debugging
+      debug:
+        var: ansible_loadavg
+      when: false  # Set to true to see the structure
 
-    - name: Set load average fact
+    - name: Get 1-minute load average from facts
       set_fact:
-        one_min_load: "{{ load_result.stdout | float }}"
+        one_min_load: "{{ 
+          ansible_loadavg['1'] | 
+          default(ansible_loadavg['1m']) | 
+          default(ansible_loadavg[0]) | 
+          default(0) | float 
+        }}"
 
     - name: Display CPU information
       debug:
