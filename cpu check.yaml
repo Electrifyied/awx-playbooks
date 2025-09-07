@@ -4,31 +4,16 @@
   gather_facts: true
 
   vars:
-    load_warning_threshold: 0.8  # Warn if load average per core > 0.8
+    load_warning_threshold: 0.8
 
   tasks:
-    - name: Get current load average
-      shell: cat /proc/loadavg | awk '{print $1,$2,$3}'
-      register: loadavg_result
-      changed_when: false
-
-    - name: Extract 1-minute load average
-      set_fact:
-        one_min_load: "{{ loadavg_result.stdout.split(' ')[0] | float }}"
-
     - name: Display CPU information
       debug:
         msg:
           - "CPU Cores: {{ ansible_processor_cores }}"
-          - "1-minute Load Average: {{ one_min_load }}"
-          - "Load per Core: {{ (one_min_load / ansible_processor_cores) | float | round(2) }}"
+          - "1-minute Load Average: {{ ansible_loadavg.0 }}"
+          - "Load per Core: {{ (ansible_loadavg.0 / ansible_processor_cores) | float | round(2) }}"
 
-    - name: Warn if CPU load is high
+    - name: Check CPU load status
       debug:
-        msg: "WARNING: CPU load per core ({{ (one_min_load / ansible_processor_cores) | float | round(2) }}) is above threshold of {{ load_warning_threshold }}!"
-      when: (one_min_load / ansible_processor_cores) > load_warning_threshold
-
-    - name: CPU load status OK
-      debug:
-        msg: "OK: CPU load per core ({{ (one_min_load / ansible_processor_cores) | float | round(2) }}) is normal."
-      when: (one_min_load / ansible_processor_cores) <= load_warning_threshold
+        msg: "{{ (ansible_loadavg.0 / ansible_processor_cores) > load_warning_threshold | ternary('WARNING: Load is high!', 'OK: Load is normal') }}"
