@@ -1,0 +1,10 @@
+---
+- name: Print device name
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  
+  tasks:
+    - name: Display device hostname
+      debug:
+        msg: "Device name: {{ ansible_hostname }}"
