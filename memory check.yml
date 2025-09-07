@@ -1,7 +1,7 @@
 ---
 - name: Check System Memory Usage
   hosts: all
-  gather_facts: true  # Required to get ansible_memfree_mb
+  gather_facts: true
 
   vars:
     memory_warning_threshold_mb: 100  # Warn if free memory < 100MB
@@ -12,7 +12,7 @@
         msg:
           - "Total Memory: {{ ansible_memtotal_mb }} MB"
           - "Free Memory: {{ ansible_memfree_mb }} MB"
-          - "Available Memory: {{ ansible_memory_mb['real']['available'] }} MB"
+          - "Memory Usage: {{ (100 - (ansible_memfree_mb / ansible_memtotal_mb * 100)) | round(2) }}%"
 
     - name: Check if free memory is critically low
       fail:
